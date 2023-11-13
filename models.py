@@ -6,17 +6,19 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
 
-
-class Network1(nn.Module): #server model
-    def __init__(self, dataset, out_features):
-        super(Network1, self).__init__()
-        self.fc_layers = FCLayers(out_features)
+class FCLayers(nn.Module):
+    def __init__(self, out_features):
+        super(FCLayers, self).__init__()
+        self.fc1 = nn.Linear(256, 100)
+        self.fc2 = nn.Linear(100, out_features)
 
     def forward(self, x):
-        x = self.fc_layers(x)
+        x = self.fc1(x)
+        x = F.relu(x)
+        x = self.fc2(x)
+        x = F.relu(x)
         return x
-
-
+    
 class ConvLayers(nn.Module):
     def __init__(self):
         super(ConvLayers, self).__init__()
@@ -32,8 +34,27 @@ class ConvLayers(nn.Module):
         x = F.relu(x)
         x = x.reshape(-1, 256)
         return x
+
+#SecureNN esque models
+class Network1(nn.Module): #server regular split model
+    def __init__(self, dataset, out_features):
+        super(Network1, self).__init__()
+        self.fc_layers = FCLayers(out_features)
+
+    def forward(self, x):
+        x = self.fc_layers(x)
+        return x
+
+class Network2(nn.Module): #client model
+    def __init__(self, dataset, out_features):
+        super(Network2, self).__init__()
+        self.conv_layers = ConvLayers()
+
+    def forward(self, x):
+        x = self.conv_layers(x)
+        return x
     
-class Network3(nn.Module):
+class Network3(nn.Module): #server usplit model
     def __init__(self, dataset, out_features):
         super(Network3, self).__init__()
         self.fc1 = nn.Linear(256, 100)
@@ -44,32 +65,8 @@ class Network3(nn.Module):
         x = F.relu(x)
         x = self.fc2(x)
         return x
-
-
-class FCLayers(nn.Module):
-    def __init__(self, out_features):
-        super(FCLayers, self).__init__()
-        self.fc1 = nn.Linear(256, 100)
-        self.fc2 = nn.Linear(100, out_features)
-
-    def forward(self, x):
-        x = self.fc1(x)
-        x = F.relu(x)
-        x = self.fc2(x)
-        x = F.relu(x)
-        return x
-
-class Network2(nn.Module): #client model
-    def __init__(self, dataset, out_features):
-        super(Network2, self).__init__()
-        self.conv_layers = ConvLayers()
-
-    def forward(self, x):
-        x = self.conv_layers(x)
-
-        return x
     
-class FullModel(nn.Module): #client model
+class FullModel(nn.Module):
     def __init__(self, dataset, out_features):
         super(FullModel, self).__init__()
         self.conv_layers = ConvLayers()
@@ -80,13 +77,38 @@ class FullModel(nn.Module): #client model
         x = self.fc_layers(x)
         return x
 
+#Original LeNet models
+class FullLeNet(nn.Module):
+    def __init__(self, dataset, out_features=10):
+        super(FullLeNet, self).__init__()
+        self.conv1 = nn.Conv2d(1, 6, kernel_size=5, stride=1, padding=0)
+        self.conv2 = nn.Conv2d(6, 16, kernel_size=5, stride=1, padding=0)
+        self.fc1 = nn.Linear(400, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, out_features)
 
+    def forward(self, x):
+        x = self.conv1(x)
+        x = F.max_pool2d(x, kernel_size=2, stride=2)
+        x = F.relu(x)  
+        x = self.conv2(x)
+        x = F.max_pool2d(x, kernel_size=2, stride=2)
+        x = F.relu(x)  
+        x = x.reshape(-1, 400)
+        x = self.fc1(x)
+        x = F.relu(x)
+        x = self.fc2(x)
+        x = F.relu(x)
+        x = self.fc3(x)
+        x = F.relu(x)
+        return x
 
 model_zoo = {
     "split_priv": Network1,
     "split_pub": Network2,
     "usplit": Network3,
     "full": FullModel,
+    "lefull": FullLeNet,
 }
 
 
@@ -103,20 +125,9 @@ online_models = {
         "id": "1-M8SaF19EFSI1Zqmnr9KL5aQG2AEqWND",
         "file_name": "alexnet_cifar10_baseline_70.23.pt",
     },
-    "alexnet_tiny-imagenet": {
-        "id": "1Nygb3K8dbSBYMls3U6rngYIAYrRsLwR0",
-        "file_name": "alexnet_tiny-imagenet_baseline_37.8.pt",
-    },
-    "resnet18_hymenoptera": {
-        "id": "1bNHE91Fn32AGPNyk_hmGZuQdpnVmyOtR",
-        "file_name": "resnet18_hymenoptera_95.pt",
-    },
 }
 
-too_big_models = {
-    "vgg16_cifar10": "17k1nKItmp-4E1r5GFqfs8oH1Uhmp5e_0",
-    "vgg16_tiny-imagenet": "1uBiLpPi34Z3NywW3zwilMZpmb964oU8q",
-}
+
 
 
 def load_state_dict(model, model_name, dataset):

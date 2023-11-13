@@ -74,13 +74,15 @@ def run(args):
     elif args.model == "usplit":
         modelPub = get_model("split_pub", args.dataset, out_features=get_number_classes(args.dataset))
         modelPriv = get_model(args.model, args.dataset, out_features=get_number_classes(args.dataset))
-    else:
+    elif args.model == "lefull" or args.model == "full":
         modelPub = None
-        modelPriv = get_model("full", args.dataset, out_features=get_number_classes(args.dataset))
+        modelPriv = get_model(args.model, args.dataset, out_features=get_number_classes(args.dataset))
+    else:
+        raise Exception("No such model")
 
     if args.test and not args.train:
         load_state_dict(model, args.model, args.dataset)
-    if not args.model == "full":
+    if not args.model == "full" and not args.model == "lefull":
         modelPub.eval()
         modelPriv.eval()
     else:
@@ -122,7 +124,7 @@ def run(args):
         test_comms_total = []
         for epoch in range(args.epochs):
             comms_count = 0
-            if not args.model == "full":
+            if not args.model == "full" and not args.model == "lefull":
                 optimizerPriv = optim.SGD(modelPriv.parameters(), lr=args.lr, momentum=args.momentum)
                 optimizerPub = optim.SGD(modelPub.parameters(), lr=args.lr, momentum=args.momentum)
             else:

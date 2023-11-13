@@ -8,7 +8,8 @@ HOME = "~"
 
 def get_number_classes(dataset):
     number_classes = {
-        "mnist": 10
+        "mnist": 10,
+        "cifar10": 10,
     }
     return number_classes[dataset]
 
@@ -51,17 +52,37 @@ def get_data_loaders(args, kwargs, private=True):
     dataset = args.dataset
 
     if dataset == "mnist":
-        transformation = transforms.Compose(
-            [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
-        )
+        if args.model == "lefull":
+            transformation = transforms.Compose(
+                [transforms.Resize((32,32)), transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+            )
+        else:
+            transformation = transforms.Compose(
+                [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+            )
         train_dataset = datasets.MNIST(
             HOME+"/data", train=True, download=True, transform=transformation
         )
         test_dataset = datasets.MNIST(
             HOME+"/data", train=False, download=True, transform=transformation
         )
+    elif dataset == "cifar10":
+        transformation = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+            ]
+        )
+        train_dataset = datasets.CIFAR10(
+            HOME+"/data", train=True, download=True, transform=transformation
+        )
+        test_dataset = datasets.CIFAR10(
+            HOME+"/data", train=False, download=True, transform=transformation
+        )
     else:
         raise ValueError(f"Not supported dataset {dataset}")
+    
+
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
