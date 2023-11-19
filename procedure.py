@@ -7,6 +7,7 @@ import sys
 import os
 
 import torch
+import numpy as np
 import syft as sy
 
 
@@ -134,6 +135,13 @@ def train(args, kwargs, modelPub, modelPriv, private_train_loader, public_train_
                     comms_count += output_comms + target_comms
                     client_server_comms += target_comms
             #print("Calc target Comms: ", time.time() - start_time)
+            # if args.model in {"lefull", "lesplit"}:
+            #     if args.public:
+            #         target_test = torch.argmax(target, dim=1)
+            #         loss_enc = torch.nn.functional.cross_entropy(output, target_test)
+            #     else:
+            #         loss_enc = output.cross_entropy(target)
+            # else:
             try:
                 loss_enc = ((target-output)**2).sum() / batch_size
             except sy.exceptions.PureFrameworkTensorFoundError:

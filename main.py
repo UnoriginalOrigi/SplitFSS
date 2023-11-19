@@ -20,7 +20,6 @@ sy.serde.compression.default_compress_scheme = NO_COMPRESSION
 from procedure import train, test
 from data import get_data_loaders, get_number_classes
 from models import get_model, load_state_dict
-from preprocess import build_prepocessing
 
 def dataset_shuffle(dataset_pub, dataset_priv):
     N = len(dataset_pub)
@@ -68,9 +67,9 @@ def run(args):
     public_train_loader, private_train_loader, public_test_loader, private_test_loader = get_data_loaders(args, kwargs, private=True)
 
     #MODEL SPLIT INTO PRIVATE AND PUBLIC
-    if args.model == "split":
-        modelPub = get_model("split_pub", args.dataset, out_features=get_number_classes(args.dataset))
-        modelPriv = get_model("split_priv", args.dataset, out_features=get_number_classes(args.dataset))
+    if args.model == "split" or args.model == "lesplit":
+        modelPub = get_model(args.model + "_pub", args.dataset, out_features=get_number_classes(args.dataset))
+        modelPriv = get_model(args.model +"_priv", args.dataset, out_features=get_number_classes(args.dataset))
     elif args.model == "usplit":
         modelPub = get_model("split_pub", args.dataset, out_features=get_number_classes(args.dataset))
         modelPriv = get_model(args.model, args.dataset, out_features=get_number_classes(args.dataset))

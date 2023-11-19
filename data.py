@@ -52,7 +52,7 @@ def get_data_loaders(args, kwargs, private=True):
     dataset = args.dataset
 
     if dataset == "mnist":
-        if args.model == "lefull":
+        if args.model == "lefull" or args.model == "lesplit":
             transformation = transforms.Compose(
                 [transforms.Resize((32,32)), transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
             )
