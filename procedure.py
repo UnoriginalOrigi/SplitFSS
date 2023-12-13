@@ -76,10 +76,12 @@ def train(args, kwargs, modelPub, modelPriv, private_train_loader, public_train_
                 if not args.public:
                     output = output.encrypt(**kwargs)
                     if args.comm_info:
-                        comms_count += sy.comm_total 
-                        client_server_comms += sy.comm_total
-                        backup_comms = sy.comm_total
-
+                        alice_shares = output.child.child.child.child['alice'].copy().get()
+                        bob_shares = output.child.child.child.child['bob'].copy().get()
+                        alice_comms = len(pickle.dumps(alice_shares))
+                        bob_comms = len(pickle.dumps(bob_shares))
+                        comms_count += alice_comms + bob_comms
+                        client_server_comms += alice_comms + bob_comms
                 else:
                     if args.comm_info:
                         output_comms = len(pickle.dumps(output))
@@ -133,7 +135,7 @@ def train(args, kwargs, modelPub, modelPriv, private_train_loader, public_train_
                     output_comms = len(pickle.dumps(output))
                     target_comms = len(pickle.dumps(target))
                     comms_count += output_comms + target_comms
-                    client_server_comms += target_comms
+                    client_server_comms += output_comms + target_comms
             #print("Calc target Comms: ", time.time() - start_time)
             # if args.model in {"lefull", "lesplit"}:
             #     if args.public:
@@ -168,11 +170,17 @@ def train(args, kwargs, modelPub, modelPriv, private_train_loader, public_train_
                 loss_dec = loss_dec.float_precision()
                 if args.comm_info:
                     if args.model == "usplit":
-                        sy.comm_total = 0
                         loss_send = loss_dec.encrypt(**kwargs)
+                        alice_shares = loss_dec.child.child.child.child['alice'].copy().get()
+                        bob_shares = loss_dec.child.child.child.child['bob'].copy().get()
+                        loss_send = len(pickle.dumps(alice_shares)) + len(pickle.dumps(bob_shares))
                         comms_count += loss_send
-                        client_server_comms += sy.comm_total
-                        
+                        client_server_comms += loss_send
+            else:
+                loss_comms = len(pickle.dumps(loss_dec))
+                comms_count += loss_comms
+                server_client_comms += loss_comms
+
                 #print(loss_dec)
             if loss_dec.abs() > 15:
                 print(f'⚠️ #{batch_idx} loss:{loss_dec.item()} RETRY...')        

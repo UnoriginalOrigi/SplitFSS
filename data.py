@@ -9,7 +9,8 @@ HOME = "~"
 def get_number_classes(dataset):
     number_classes = {
         "mnist": 10,
-        "cifar10": 10,
+        "fmnist": 10,
+        "cifar10": 10
     }
     return number_classes[dataset]
 
@@ -26,7 +27,7 @@ def one_hot_of(index_tensor):
          [0., 0., 0., 0., 0., 0., 0., 0., 0., 1.]]
 
     """
-    onehot_tensor = torch.zeros(*index_tensor.shape, 10)  # 10 classes for MNIST
+    onehot_tensor = torch.zeros(*index_tensor.shape, 10) 
     onehot_tensor = onehot_tensor.scatter(1, index_tensor.view(-1, 1), 1)
     return onehot_tensor
 
@@ -52,7 +53,7 @@ def get_data_loaders(args, kwargs, private=True):
     dataset = args.dataset
 
     if dataset == "mnist":
-        if args.model == "lefull" or args.model == "lesplit":
+        if args.model == "lefull" or args.model == "lesplit" or args.model == "leusplit":
             transformation = transforms.Compose(
                 [transforms.Resize((32,32)), transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
             )
@@ -66,6 +67,21 @@ def get_data_loaders(args, kwargs, private=True):
         test_dataset = datasets.MNIST(
             HOME+"/data", train=False, download=True, transform=transformation
         )
+    elif dataset == "fmnist":
+        if args.model == "lefull" or args.model == "lesplit" or args.model == "leusplit":
+            transformation = transforms.Compose(
+                [transforms.Resize((32,32)), transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+            )
+        else:
+            transformation = transforms.Compose(
+                [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+            )
+        train_dataset = datasets.FashionMNIST(
+            HOME+"/data", train=True, download=True, transform=transformation
+        )
+        test_dataset = datasets.FashionMNIST(
+            HOME+"/data", train=False, download=True, transform=transformation
+        )    
     elif dataset == "cifar10":
         transformation = transforms.Compose(
             [

@@ -106,7 +106,10 @@ class FullLeNet(nn.Module):
 class SplitLeNet1(nn.Module):
     def __init__(self, dataset, out_features=10):
         super(SplitLeNet1, self).__init__()
-        self.conv1 = nn.Conv2d(1, 6, kernel_size=5, stride=1, padding=0)
+        if dataset == "cifar10":
+            self.conv1 = nn.Conv2d(3, 6, kernel_size=5, stride=1, padding=0)
+        else:
+            self.conv1 = nn.Conv2d(1, 6, kernel_size=5, stride=1, padding=0)
         self.conv2 = nn.Conv2d(6, 16, kernel_size=5, stride=1, padding=0)
 
     def forward(self, x):
@@ -134,6 +137,21 @@ class SplitLeNet2(nn.Module):
         x = self.fc3(x)
         x = F.relu(x)
         return x
+    
+class SplitLeNet3(nn.Module):
+    def __init__(self, dataset, out_features=10):
+        super(SplitLeNet2, self).__init__()
+        self.fc1 = nn.Linear(400, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, out_features)
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = F.relu(x)
+        x = self.fc2(x)
+        x = F.relu(x)
+        x = self.fc3(x)
+        return x
 
 model_zoo = {
     "split_priv": Network1,
@@ -143,6 +161,7 @@ model_zoo = {
     "lefull": FullLeNet,
     "lesplit_pub": SplitLeNet1,
     "lesplit_priv": SplitLeNet2,
+    "leusplit": SplitLeNet3
 }
 
 
