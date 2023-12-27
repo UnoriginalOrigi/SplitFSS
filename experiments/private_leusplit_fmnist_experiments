@@ -1,0 +1,6 @@
+mkdir priv_fmnist_leusplit
+for i in {1..10}
+do
+	echo "Running LeUSplit private Fashion MNIST  experiment number $i"
+	python3 ../main.py --model leusplit --dataset fmnist --train --epochs 10 --lr 0.02 --momentum 0.9 --comm_info > priv_fmnist_leusplit/priv_fmnist_leusplit_test$i.txt
+done

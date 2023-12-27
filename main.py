@@ -71,7 +71,8 @@ def run(args):
         modelPub = get_model(args.model + "_pub", args.dataset, out_features=get_number_classes(args.dataset))
         modelPriv = get_model(args.model +"_priv", args.dataset, out_features=get_number_classes(args.dataset))
     elif args.model == "usplit" or args.model == "leusplit":
-        modelPub = get_model("split_pub", args.dataset, out_features=get_number_classes(args.dataset))
+        model_rename = args.model.replace("u","")
+        modelPub = get_model(model_rename + "_pub", args.dataset, out_features=get_number_classes(args.dataset))
         modelPriv = get_model(args.model, args.dataset, out_features=get_number_classes(args.dataset))
     elif args.model == "lefull" or args.model == "full":
         modelPub = None
@@ -200,7 +201,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model",
         type=str,
-        help="model to use for inference (split, full, usplit, lesplit, lefull)",
+        help="model to use for inference (split, full, usplit, lesplit, lefull, leusplit)",
     )
 
     parser.add_argument(

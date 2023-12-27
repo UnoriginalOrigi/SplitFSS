@@ -1,0 +1,6 @@
+mkdir pub_split
+for i in {1..10}
+do
+	echo "Running split public experiment number $i"
+	python3 ../main.py --model split --dataset fmnist --train --epochs 10 --lr 0.02 --momentum 0.9 --public --comm_info > pub_split/pub_split_test$i.txt
+done

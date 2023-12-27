@@ -56,13 +56,10 @@ def train(args, kwargs, modelPub, modelPriv, private_train_loader, public_train_
     dataPub, targetPub = extract_public_data(public_train_loader)
 
     for batch_idx, (data, target) in enumerate(private_train_loader):
-        if args.comm_info:
-            sy.comm_total = 0
         start_time = time.time()
 
         #FORWARD REQUIRES TO PASS THE PUBLIC DATA AND THE SPLIT MODELS NOW
         def forward(optimizerPub, modelPub, modelPriv, data, dataPub, target, targetPub, comms_count, client_server_comms, server_client_comms):
-
             if not modelPub == None:
                 optimizerPub.zero_grad()    
             optimizerPriv.zero_grad()
@@ -90,7 +87,7 @@ def train(args, kwargs, modelPub, modelPriv, private_train_loader, public_train_
                 #operating on secret shared values
                 output = modelPriv(output)
                 
-                if args.model == "usplit": #usplit implementation
+                if args.model == "usplit" or args.model == "leusplit": #usplit implementation
                     if not args.public:   
                         if args.comm_info:
                             alice_shares = output.child.child.child.child['alice'].copy().get()
@@ -160,26 +157,24 @@ def train(args, kwargs, modelPub, modelPriv, private_train_loader, public_train_
             if loss_dec.is_wrapper:
                 if not args.fp_only:
                     if args.comm_info:
-                        if not args.model == "usplit":
-                            alice_shares = loss_dec.child.child.child.child['alice'].copy().get()
-                            bob_shares = loss_dec.child.child.child.child['bob'].copy().get()
-                            loss_send = len(pickle.dumps(alice_shares)) + len(pickle.dumps(bob_shares))
-                            comms_count += loss_send
-                            server_client_comms += loss_send
-                    loss_dec = loss_dec.get()
-                loss_dec = loss_dec.float_precision()
-                if args.comm_info:
-                    if args.model == "usplit":
-                        loss_send = loss_dec.encrypt(**kwargs)
                         alice_shares = loss_dec.child.child.child.child['alice'].copy().get()
                         bob_shares = loss_dec.child.child.child.child['bob'].copy().get()
                         loss_send = len(pickle.dumps(alice_shares)) + len(pickle.dumps(bob_shares))
                         comms_count += loss_send
-                        client_server_comms += loss_send
+                        if not args.model == "usplit" or not args.model == "leusplit":
+                            server_client_comms += loss_send
+                        else:
+                            client_server_comms += loss_send
+
+                    loss_dec = loss_dec.get()
+                loss_dec = loss_dec.float_precision()
             else:
                 loss_comms = len(pickle.dumps(loss_dec))
                 comms_count += loss_comms
-                server_client_comms += loss_comms
+                if not args.model == "usplit" or not args.model == "leusplit":
+                    server_client_comms += loss_comms
+                else:
+                    client_server_comms += loss_comms
 
                 #print(loss_dec)
             if loss_dec.abs() > 15:
@@ -192,8 +187,6 @@ def train(args, kwargs, modelPub, modelPriv, private_train_loader, public_train_
         optimizerPriv.step()
         tot_time = time.time() - start_time
         times.append(tot_time)
-        if args.comm_info:
-                del sy.comm_total
         if batch_idx % args.log_interval == 0:
             if args.train:
                 print(
@@ -232,8 +225,6 @@ def test(args, kwargs, modelPub, modelPriv, private_test_loader, public_test_loa
     dataPub, targetPub = extract_public_data(public_test_loader)
     with torch.no_grad():
         for batch_idx, (data, target) in enumerate(private_test_loader):
-            if args.comm_info:
-                sy.comm_total = 0
             i += 1
             start_time = time.time()
                 
@@ -244,13 +235,17 @@ def test(args, kwargs, modelPub, modelPriv, private_test_loader, public_test_loa
                     output = output.encrypt(**kwargs)                    
                 if args.comm_info:
                     if not args.public:                        
-                        test_comms += sy.comm_total
+                        alice_shares = data.child.child.child.child['alice'].copy().get()
+                        bob_shares = data.child.child.child.child['bob'].copy().get()
+                        alice_comms = len(pickle.dumps(alice_shares))
+                        bob_comms = len(pickle.dumps(bob_shares))
+                        test_comms += alice_comms + bob_comms
                     else:
                         output_comms = len(pickle.dumps(output))
                         test_comms += output_comms
 
                 output = modelPriv(output)
-                if args.model == "usplit":
+                if args.model == "usplit" or args.model == "leusplit":
                     if args.comm_info:
                         if not args.public:                        
                             output_comms = len(pickle.dumps(output))
@@ -284,10 +279,9 @@ def test(args, kwargs, modelPub, modelPriv, private_test_loader, public_test_loa
             except sy.exceptions.PureFrameworkTensorFoundError:
                 target1 = target.copy().get()
                 correct += pred.eq(target1.view_as(pred)).sum()
-            if args.comm_info:
-                del sy.comm_total
+
             if batch_idx % args.log_interval == 0 and correct.is_wrapper:
-                if args.fp_only or args.model == "usplit":
+                if args.fp_only or args.model == "usplit" or args.model == "leusplit":
                     c = correct.copy().float_precision()
                 else:
                     c = correct.copy().get().float_precision()
@@ -304,7 +298,7 @@ def test(args, kwargs, modelPub, modelPriv, private_test_loader, public_test_loa
                     )
 
     if correct.is_wrapper:
-        if args.fp_only or args.model == "usplit":
+        if args.fp_only or args.model == "usplit" or args.model == "leusplit":
             correct = correct.float_precision()
         else:
             correct = correct.get().float_precision()

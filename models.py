@@ -81,7 +81,10 @@ class FullModel(nn.Module):
 class FullLeNet(nn.Module):
     def __init__(self, dataset, out_features=10):
         super(FullLeNet, self).__init__()
-        self.conv1 = nn.Conv2d(1, 6, kernel_size=5, stride=1, padding=0)
+        if dataset == "cifar10":
+            self.conv1 = nn.Conv2d(3, 6, kernel_size=5, stride=1, padding=0)
+        else:
+            self.conv1 = nn.Conv2d(1, 6, kernel_size=5, stride=1, padding=0)
         self.conv2 = nn.Conv2d(6, 16, kernel_size=5, stride=1, padding=0)
         self.fc1 = nn.Linear(400, 120)
         self.fc2 = nn.Linear(120, 84)
@@ -140,7 +143,7 @@ class SplitLeNet2(nn.Module):
     
 class SplitLeNet3(nn.Module):
     def __init__(self, dataset, out_features=10):
-        super(SplitLeNet2, self).__init__()
+        super(SplitLeNet3, self).__init__()
         self.fc1 = nn.Linear(400, 120)
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, out_features)
