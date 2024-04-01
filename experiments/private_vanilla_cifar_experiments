@@ -1,0 +1,6 @@
+mkdir priv_cifar_vanilla
+for i in {1..10}
+do
+	echo "Running vanilla private cifar10 experiment number $i"
+	python3 ../main.py --model full --dataset cifar10 --train --epochs 10 --lr 0.02 --momentum 0.9 --comm_info > priv_cifar_vanilla/priv_vanilla_test$i.txt
+done
