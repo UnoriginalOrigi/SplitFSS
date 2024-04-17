@@ -29,8 +29,8 @@ usage: main.py [-h] [--model MODEL] [--dataset DATASET] [--batch_size BATCH_SIZE
 
 optional arguments:
   -h, --help            show this help message and exit
-  --model MODEL         model to use (full, split, usplit)
-  --dataset DATASET     currently only MNIST dataset is available (mnist)
+  --model MODEL         model to use (full, split, usplit, lefull, lesplit, leusplit)
+  --dataset DATASET     dataset to use (mnist, fmnist, cifar10)
   --batch_size BATCH_SIZE
                         size of the batch to use. Default 128.
   --test_batch_size TEST_BATCH_SIZE
@@ -39,8 +39,8 @@ optional arguments:
   --public              [needs --train] Train without fix precision or secret sharing
   --train               run training for n epochs
   --epochs EPOCHS       [needs --train] number of epochs to train on. Default 15.
-  --lr LR               [needs --train] learning rate of the SGD. Default 0.01.
-  --momentum MOMENTUM   [needs --train] momentum of the SGD. Default 0.9.
+  --lr LR               [needs --train] learning rate. Default 0.01.
+  --momentum MOMENTUM   [needs --train] momentum. Default 0.9.
   --verbose             show extra information and metrics
   --log_interval LOG_INTERVAL
                         [needs --test or --train] log intermediate metrics every n batches. Default 10.
