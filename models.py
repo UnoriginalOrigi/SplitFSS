@@ -20,9 +20,12 @@ class FCLayers(nn.Module):
         return x
     
 class ConvLayers(nn.Module):
-    def __init__(self):
+    def __init__(self, dataset):
         super(ConvLayers, self).__init__()
-        self.conv1 = nn.Conv2d(1, 16, kernel_size=5, stride=1, padding=0)
+        if dataset == "cifar10":
+            self.conv1 = nn.Conv2d(3, 16, kernel_size=5, stride=1, padding=0)
+        else:
+            self.conv1 = nn.Conv2d(1, 16, kernel_size=5, stride=1, padding=0)
         self.conv2 = nn.Conv2d(16, 16, kernel_size=5, stride=1, padding=0)
 
     def forward(self, x):
@@ -48,7 +51,7 @@ class Network1(nn.Module): #server regular split model
 class Network2(nn.Module): #client model
     def __init__(self, dataset, out_features):
         super(Network2, self).__init__()
-        self.conv_layers = ConvLayers()
+        self.conv_layers = ConvLayers(dataset)
 
     def forward(self, x):
         x = self.conv_layers(x)
@@ -69,7 +72,7 @@ class Network3(nn.Module): #server usplit model
 class FullModel(nn.Module):
     def __init__(self, dataset, out_features):
         super(FullModel, self).__init__()
-        self.conv_layers = ConvLayers()
+        self.conv_layers = ConvLayers(dataset)
         self.fc_layers = FCLayers(out_features)
 
     def forward(self, x):

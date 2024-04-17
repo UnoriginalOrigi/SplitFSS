@@ -83,12 +83,14 @@ def get_data_loaders(args, kwargs, private=True):
             HOME+"/data", train=False, download=True, transform=transformation
         )    
     elif dataset == "cifar10":
-        transformation = transforms.Compose(
-            [
-                transforms.ToTensor(),
-                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-            ]
-        )
+        if args.model == "full" or args.model == "split" or args.model == "usplit":
+            transformation = transforms.Compose(
+                    [transforms.Resize((28,28)),transforms.ToTensor(),  transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+                )
+        else:
+            transformation = transforms.Compose(
+                [transforms.ToTensor(),  transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+            )
         train_dataset = datasets.CIFAR10(
             HOME+"/data", train=True, download=True, transform=transformation
         )
