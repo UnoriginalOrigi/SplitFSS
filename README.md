@@ -8,7 +8,34 @@ This is the open-source implementation to reproduce the results of Split Learnin
 This code is based on the original [AriaNN framework paper](https://arxiv.org/abs/2006.04593) and [AriaNN code](https://github.com/LaRiffle/ariann/).
 
 
+### Models
+This implementation provides two different models with three different variations each. The core models are:
+* MiniONN consisting of:
+  * Convolution Layer (16 Output Channels, Kernel Size: 5, Stride: 1)
+  * Max Pool (Kernel: 2, Stride: 2) + ReLU
+  * Convolution (16 Output Channels, Kernel Size: 5, Stride: 1)
+  * Max Pool (Kernel: 2, Stride: 2) + ReLU
+  * Fully Connected Layer (256 inputs, 100 outputs) + ReLU
+  * Fully Connected Layer (100 inputs, dataset_amount outputs) + ReLU
+* LeNet consisting of:
+  * Convolution Layer (6 Output Channels, Kernel Size: 5, Stride: 1)
+  * Max Pool (Kernel: 2, Stride: 2) + ReLU
+  * Convolution (16 Output Channels, Kernel Size: 5, Stride: 1)
+  * Max Pool (Kernel: 2, Stride: 2) + ReLU
+  * Fully Connected Layer (400 inputs, 120 outputs) + ReLU
+  * Fully Connected Layer (120 inputs, 84 outputs) + ReLU
+  * Fully Connected Layer (84 inputs, dataset_amount outputs) + ReLU
 
+Each model has three variations:
+* Full model -- consisting of no use of Split Learning, the full model.
+* Split model -- model architectures are split after the second Convolution + Max Pool layer, where the server does both Fully Conneted Layers and starts the backpropogation after receiving the correspondings labels.
+* USplit model -- same as the Split model, but the final layer is executed back on the client side and the client does not have to share the labels.
+
+### Datasets
+The implementation has 3 different datasets:
+* MNIST -- 60 000 images (50 000 training, 10 000 testing) 28x28x1 size, which contains monochrome images of handwritten numbers. A standard machine learning dataset for testing.
+* FashionMNIST -- 60 000 images (50 000 training, 10 000 testing) 28x28x1 size, which contains images of standard clothing items. More difficult and robust than the original MNIST dataset.
+* CIFAR-10 -- 60 000 images (50 000 training, 10 000 testing) 28x28x3 size, which contains colored images of diverse real world items in centre frame. More channels and more difficult to correctly classify.
 ## Usage
 
 ### Reproduce results
@@ -20,6 +47,7 @@ To train different models or set different parameters you can set each parameter
 ```
 python3 main.py --model split --dataset mnist --train --epochs 5 --lr 0.01 --momentum 0.95 --comm_info
 ```
+Adding the parameter ``` --public ``` to the command will perform standard training without the use of Function Secret Sharing.
 
 ### Documentation
 
