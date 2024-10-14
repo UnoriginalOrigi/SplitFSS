@@ -83,7 +83,6 @@ We recommend using a fresh Python 3.7 environment, when running the experiments.
 
 Download PySyft from GitHub using the `ryffel/ariaNN` branch and install in editable mode:
 ```
-cd ~
 git clone https://github.com/OpenMined/PySyft.git
 cd PySyft
 git checkout a73b13aa84a8a9ad0923d87ff1b6c8c2facdeaa6
@@ -91,3 +90,11 @@ pip install -e .
 ```
 
 This should allow you to run the experiments for reproducing our results.
+ 
+#### Troubleshooting
+
+* The needed checkout in PySyft has errors when running the installation process and throws a `error: metadata-generation-failed`. In this case you need to access the PySyft directory and find `.../PySyft/pip-dep/requirements_udacity.txt` and change the `tf_encrypted` line to `tf_encrypted>=0.5.4`.
+* On Linux make sure all needed libraries are installed acording to your distribution such as `libsrtp2-dev`, `libavformat-dev` and `libavdevice-dev`.
+* If there are errors when running the code for a missing module `ModuleNotFoundError: No module named 'torchcsprng'`, then install it through pip with `pip3 install torchcsprng` and then downgrading manually your `torch` version to 1.4.0 by running `pip install torch==1.4.0`.
+* In the case that `protobuf` throws an error when running the code, downgrade the version of it to 3.20.3 by running `pip install protobuf==3.20.3`.
+* We used a CPU for our tests, as such we disable CUDA capable devices by running `export CUDA_VISIBLE_DEVICES==""` before running the code.
